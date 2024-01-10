@@ -18,8 +18,8 @@ from typing import List
 
 import numpy
 
-from ds_capability.nn.tokenizers.column_coder import ColumnCodes
-from ds_capability.nn.tokenizers.tokenizer_spec import TokenizerSpec
+from ds_nn.megatron.tokenizers.column_coder import ColumnCodes
+from ds_nn.megatron.tokenizers.tokenizer_spec import TokenizerSpec
 
 __all__ = ['TabularTokenizer']
 

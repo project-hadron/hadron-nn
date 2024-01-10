@@ -64,9 +64,9 @@ setup(
     include_package_data=True,
     package_data={},
     install_requires=[
-        'pyarrow'
-        'pandas'
-        'numpy'
+        'pyarrow',
+        'pandas',
+        'numpy',
     ],
     extras_require={},
     test_suite='tests',

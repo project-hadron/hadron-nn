@@ -24,16 +24,15 @@ from sklearn.preprocessing import PowerTransformer, QuantileTransformer, RobustS
 __all__ = ["IntCode", "FloatCode", "CategoryCode", "ColumnCodes", 'code_schema']
 
 
-def code_schema(canonical : pa.Table, target: str):
+def code_schema(canonical : pa.Table, target: str, int_columns: list, float_columns: list, category_columns: list):
     if target in canonical.column_names:
-        canonical.drop_columns(target)
+        canonical = canonical.drop_columns(target)
     tab_structure = []
-    example_tabs = {}
+    example_arrays = {}
     for n in canonical.column_names:
-        c = canonical.column(n)
-        if pa.types.is_floating(c.type):
+        if n in float_columns:
             item = {
-                "name": c,
+                "name": n,
                 "code_type": "float",
                 "args": {
                     "code_len": 3,  # number of tokens used to code the column
@@ -43,9 +42,9 @@ def code_schema(canonical : pa.Table, target: str):
                     "transform": "yeo-johnson",  # can be ['yeo-johnson', 'quantile', 'robust'],
                 }
             }
-        elif pa.types.is_integer(c.type):
+        elif n in int_columns:
             item = {
-                "name": c,
+                "name": n,
                 "code_type": "int",
                 "args": {
                     "code_len": 3,  # number of tokens used to code the column
@@ -54,22 +53,22 @@ def code_schema(canonical : pa.Table, target: str):
                     "hasnan": True,  # can it handles nan or not
                 }
             }
-        elif pa.types.is_string(c.type) or pa.types.is_dictionary(c.type):
+        elif n in category_columns:
             item = {
-                "name": c,
+                "name": n,
                 "code_type": "category",
             }
         else:
-            raise ValueError(f"The column '{n}' of type '{c.type}' is not supported")
+            continue
         tab_structure.append(item)
         # example tabs
-        for col in tab_structure:
-            if col['code_type'] == "category":
-                example_tabs[n] = pc.unique(pc.utf8_trim_whitespace(c))
-            else:
-                example_tabs[n] = pc.unique(pc.drop_null(c))
-
-    return tab_structure, example_tabs
+        col_name = item['name']
+        c = canonical.column(col_name).combine_chunks()
+        if col_name in category_columns:
+            example_arrays[col_name] = pc.unique(pc.utf8_trim_whitespace(pc.cast(c, pa.string()))).to_pylist()
+        else:
+            example_arrays[col_name] = pc.unique(c.drop_null()).to_pylist()
+    return tab_structure, example_arrays
 
 
 class Code(object):
