@@ -49,6 +49,7 @@ class ColumnCoderTest(unittest.TestCase):
         _ = fs.add_connector_uri('card', uri="s3://project-hadron-cs-repo/downloads/data/card_transaction_750000.csv")
         card = fs.load_canonical('card')
         card = fe.tools.correlate_replace(card, target='Amount', pattern='$', replacement='', to_header='Amount')
+
         card = fs.tools.auto_cast_types(card, inc_category=False, inc_timestamp=False)
         float_columns = ['Amount']
         category_columns = ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Card', 'Use Chip',
@@ -58,7 +59,7 @@ class ColumnCoderTest(unittest.TestCase):
         tab_structure, example_tabs = code_schema(card, target='User', int_columns=integer_columns,
                                                   float_columns=float_columns, category_columns=category_columns)
         cc = ColumnCodes.get_column_codes(tab_structure, example_tabs)
-        print(type(cc))
+        print(cc)
 
 
     def test_raise(self):

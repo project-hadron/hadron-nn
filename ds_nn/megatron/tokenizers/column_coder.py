@@ -67,7 +67,7 @@ def code_schema(canonical : pa.Table, target: str, int_columns: list, float_colu
         if col_name in category_columns:
             example_arrays[col_name] = pc.unique(pc.utf8_trim_whitespace(pc.cast(c, pa.string()))).to_pylist()
         else:
-            example_arrays[col_name] = pc.unique(c.drop_null()).to_pylist()
+            example_arrays[col_name] = pc.unique(c.drop_null()).to_numpy()
     return tab_structure, example_arrays
 
 
