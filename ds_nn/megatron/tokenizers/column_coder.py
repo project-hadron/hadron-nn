@@ -67,10 +67,10 @@ def code_schema(canonical : pa.Table, target: str, int_columns: list, float_colu
         if col_name in category_columns:
             example_arrays[col_name] = pc.unique(pc.utf8_trim_whitespace(pc.cast(c, pa.string()))).to_pylist()
         else:
-            if pc.sum(pc.is_valid(c)).as_py() > 0:
+            try:
                 example_arrays[col_name] = pc.unique(c.drop_null()).to_numpy()
-            else:
-                warnings.warn(f'No values found in header {col_name}')
+            except pa.ArrowInvalid:
+                warnings.warn(f'Error thrown finding unique items for {col_name}')
                 continue
 
     return tab_structure, example_arrays
