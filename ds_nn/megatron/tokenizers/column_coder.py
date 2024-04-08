@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # created under: https://github.com/NVIDIA/NeMo
-
+import warnings
 import math
 from typing import Dict, List, Tuple
 import pyarrow as pa
@@ -67,7 +67,12 @@ def code_schema(canonical : pa.Table, target: str, int_columns: list, float_colu
         if col_name in category_columns:
             example_arrays[col_name] = pc.unique(pc.utf8_trim_whitespace(pc.cast(c, pa.string()))).to_pylist()
         else:
-            example_arrays[col_name] = pc.unique(c.drop_null()).to_numpy()
+            if pc.sum(pc.is_valid(c)).as_py() > 0:
+                example_arrays[col_name] = pc.unique(c.drop_null()).to_numpy()
+            else:
+                warnings.warn(f'No values found in header {col_name}')
+                continue
+
     return tab_structure, example_arrays
 
 
@@ -113,9 +118,7 @@ class Code(object):
 
 
 class IntCode(Code):
-    def __init__(
-        self, col_name: str, code_len: int, start_id: int, fillall: bool = True, base: int = 100, hasnan: bool = True
-    ):
+    def __init__(self, col_name: str, code_len: int, start_id: int, fillall: bool = True, base: int = 100, hasnan: bool = True):
         super().__init__(col_name, code_len, start_id, fillall, hasnan)
         self.NA_token_id = None
         self.NA_token = None
