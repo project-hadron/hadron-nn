@@ -3,3 +3,4 @@ setuptools
 pyarrow
 pandas
 numpy
+torch
